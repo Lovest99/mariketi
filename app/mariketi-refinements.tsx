@@ -1,5 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
+// Mariketi 2027 responsive product-completion layer.
 
 import {
   Activity,
