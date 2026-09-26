@@ -136,3 +136,38 @@ html,body,.app,.route-view{max-width:100%;overflow-x:clip}
   .detail-heading>div:last-child{margin-top:18px;text-align:left}
   .purchase{position:static;margin-top:24px}
 }
+
+
+/* Mobile viewport and accessibility hardening */
+html{
+  width:100%;
+  min-width:0;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+body,.app,.route-view{
+  width:100%;
+  min-width:0;
+}
+.skip-link{
+  position:fixed;
+  z-index:1000;
+  top:12px;
+  left:12px;
+  transform:translateY(calc(-100% - 24px));
+  padding:10px 14px;
+  border-radius:8px;
+  background:var(--foreground);
+  color:var(--background);
+  font-weight:700;
+  text-decoration:none;
+  transition:transform .18s ease;
+}
+.skip-link:focus,.skip-link:focus-visible{
+  transform:translateY(0);
+}
+@media(max-width:700px){
+  .route-view,.hero,.page,.snapshot,.cards,.trust-block{width:100%;max-width:100%}
+  .header{width:100%;max-width:100vw}
+  .hero-copy,.hero-photo,.card,.card-body{min-width:0}
+}
