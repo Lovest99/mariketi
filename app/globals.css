@@ -4,6 +4,7 @@
 @import "./mariketi.css";
 @import "./mariketi2.css";
 @import "./mariketi3.css";
+@import "./enterprise.css";
 
 @utility scrollbar-thin {
   scrollbar-width: thin;
