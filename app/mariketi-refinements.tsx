@@ -163,15 +163,34 @@ function TransportRoute({ path }: { path: string }) {
   return <><SectionIntro path={path}/><section className="route-map"><div><span className="eyebrow light">Live route</span><h3>Bulawayo → Gweru → Kwekwe</h3><p>3 stops · 184 km · Documents ready</p></div><Truck/></section><div className="workflow-list">{seedListings.slice(0,3).map((x,i)=><article key={x.id}><span className="route-number">{i+1}</span><div><small>{i===0?"PICKUP · 09:30":"HANDOVER · 13:00"}</small><h3>{x.seller}</h3><p>{x.location} · {x.title}</p></div><StatusPill tone={i===0?"caution":"neutral"}>{i===0?"EN ROUTE":"UPCOMING"}</StatusPill><Button>{i===0?"Update":"Details"}</Button></article>)}</div></>;
 }
 
+function SavedSearchesView(){
+  const searches=[
+    ["Brahman cattle","Midlands · Under US$1,500 · Verified only","3 new matches",true],
+    ["Breeding goats","Matabeleland South · Offers accepted","8 new matches",true],
+    ["Dorper sheep","Within 150 km of Gweru","No new matches",false],
+  ] as const;
+  return <section className="enterprise-view"><SectionIntro icon={Search} eyebrow="Buyer intelligence" title="Saved searches" description="Keep high-intent livestock criteria active and receive relevant marketplace matches."/><div className="saved-search-grid">{searches.map(([name,criteria,matches,active])=><article key={name}><div><span className="eyebrow blue">{active?"Alerts active":"Alerts paused"}</span><h3>{name}</h3><p>{criteria}</p></div><strong>{matches}</strong><div><Button>Run search</Button><Button variant="outline">{active?"Pause alerts":"Resume alerts"}</Button></div></article>)}</div></section>;
+}
+
+function SettingsView(){
+  return <section className="enterprise-view"><SectionIntro icon={Settings} eyebrow="Account controls" title="Settings" description="Manage marketplace preferences, security and communication without losing role context."/><div className="settings-grid"><article><h3>Marketplace preferences</h3><label>Home province<select defaultValue="Midlands"><option>Midlands</option><option>Bulawayo</option><option>Harare</option><option>Masvingo</option></select></label><label>Preferred livestock<select defaultValue="Cattle"><option>Cattle</option><option>Goats</option><option>Sheep</option><option>Poultry</option></select></label><Button>Save preferences</Button></article><article><h3>Notifications</h3>{["New offers","Saved-search matches","Transaction updates","Zone and permit alerts"].map((item,index)=><label className="setting-toggle" key={item}><span><b>{item}</b><small>{index===3?"Important movement updates":"Push and in-app notifications"}</small></span><input type="checkbox" defaultChecked={index!==2}/></label>)}</article><article><h3>Security & sessions</h3><p>Last sign-in · Bulawayo · Android device</p><Button variant="outline">Manage active sessions</Button><Button variant="outline">Update recovery details</Button></article></div></section>;
+}
+
 const adminConfig: Record<string,{title:string;description:string;icon:typeof Search;actions:string[]}>={
   users:{title:"User directory",description:"Identity, role, verification and marketplace access.",icon:Users,actions:["Verify identity","Suspend access"]},
+  sellers:{title:"Seller operations",description:"Monitor seller verification, reputation, livestock activity and commercial risk.",icon:Users,actions:["Review seller","Open profile"]},
   listings:{title:"Listing governance",description:"Review quality, verification and tradeability before exposure.",icon:Tractor,actions:["Review listing","Request evidence"]},
   verification:{title:"Verification operations",description:"Assign agents and protect inspection turnaround targets.",icon:BadgeCheck,actions:["Assign agent","Escalate"]},
+  "collection-centres":{title:"Collection centre network",description:"Track facility capacity, intake quality, handovers and operational issues.",icon:Building2,actions:["Add centre","Open centre"]},
+  transactions:{title:"Transaction operations",description:"Follow accepted offers through secured payment, handover and completion.",icon:PackageCheck,actions:["Review transaction","Open timeline"]},
   payments:{title:"Payment reconciliation",description:"Track protected funds, provider events and exceptions.",icon:WalletCards,actions:["Reconcile","Review event"]},
   disputes:{title:"Dispute casework",description:"Resolve evidence-led cases with a clear decision trail.",icon:AlertTriangle,actions:["Open case","Assign reviewer"]},
+  transport:{title:"Transport network",description:"Coordinate pickups, route exceptions, collection and delivery evidence.",icon:Truck,actions:["Assign route","Open assignment"]},
+  reports:{title:"Operational reporting",description:"Produce trusted marketplace, compliance and performance reporting.",icon:Activity,actions:["Create report","View report"]},
+  cms:{title:"Marketplace content",description:"Control public content, help guidance, announcements and featured inventory.",icon:FileCheck2,actions:["Create content","Preview"]},
   configuration:{title:"Marketplace configuration",description:"Control policies, fees, verification rules and operating regions.",icon:Settings,actions:["Edit policy","Review changes"]},
   audit:{title:"Immutable audit log",description:"Trace high-impact actions across users, listings and transactions.",icon:Activity,actions:["Export log","View event"]},
-};
+}
 
 function AdminModule({ path }: { path: string }) {
   const key=path.split("/").pop()||"users";
@@ -182,6 +201,8 @@ function AdminModule({ path }: { path: string }) {
 
 export function RefinedWorkspace({ role, path }: { role: UserRole; path: string; go: Go }) {
   if (path === "/app/profile") return <ProfileView/>;
+  if (path === "/app/searches") return <SavedSearchesView/>;
+  if (path === "/app/settings") return <SettingsView/>;
   if (path === "/app/verification-requests") return <VerificationRequests/>;
   if (role === "agent" && path !== "/agent") return <AgentRoute path={path}/>;
   if (role === "operator" && path !== "/operator") return <OperatorRoute path={path}/>;
@@ -191,8 +212,9 @@ export function RefinedWorkspace({ role, path }: { role: UserRole; path: string;
 }
 
 export const refinedPaths = new Set([
-  "/app/profile","/app/verification-requests","/agent/sync","/agent/history",
+  "/app/profile","/app/searches","/app/settings","/app/verification-requests","/agent/sync","/agent/history",
   "/operator/intake","/operator/animals","/operator/handover","/operator/issues",
   "/transport/assignments","/transport/history","/admin/users","/admin/listings",
-  "/admin/verification","/admin/payments","/admin/disputes","/admin/configuration","/admin/audit",
+  "/admin/sellers","/admin/verification","/admin/collection-centres","/admin/transactions",
+  "/admin/payments","/admin/disputes","/admin/transport","/admin/reports","/admin/cms","/admin/configuration","/admin/audit",
 ]);
