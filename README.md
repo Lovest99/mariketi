@@ -1,126 +1,107 @@
-# vinext-starter
+# Mariketi
 
-A clean full-stack starter running on [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and Drizzle support.
+![Mariketi](public/mariketi-logo.png)
 
-## Prerequisites
+**A livestock marketplace frontend for Zimbabwe, designed around verification and the journey from discovery to handover.**
 
-- Node.js `>=22.13.0`
-- Portable: Windows, macOS, or Linux; no Bash required
-- Managed Linux: managed Linux runtime with Bash, `flock`, `curl`, `sha256sum`, and GNU `timeout`
-- Git is required only for publishing
+[Configured demo URL](https://mariketi.vercel.app) · [Source](https://github.com/Lovest99/mariketi)
 
-## Sites Lifecycle
+> **Status: frontend prototype.** Listings, offers, notifications and zone updates use seeded data and in-memory services. Demo roles are selectable in the interface. This repository does not yet implement production authentication, payments, verification or persistent marketplace records. The demo URL is configured in repository metadata; availability is not guaranteed by this README.
 
-The Sites initializer copies the shared starter and selects managed-linux only when `SITES_MANAGED_LINUX_CONTAINER=1`; otherwise it selects portable. It saves the selection only in ignored `.sites-runtime/execution-profile.json`. Both profiles copy/configure first, then use the plugin's separate `install-dependencies.mjs` step to measure installation independently. Edit source under `app/` and follow the Sites skill for installation, preview, builds, and publishing.
+## Product scope
 
-Whenever reopening or moving a checkout, run `node <plugin-root>/scripts/configure-execution-profile.mjs` before project commands. Profile changes do not alter tracked source or require reinstalling otherwise-valid dependencies; restart an existing preview to use the new selection. Do not commit or upload `.sites-runtime/`.
+The interface explores the workflow **discover → verify → offer → transact → handover**.
 
-This starter does not use `wrangler.jsonc`.
+| Workspace | Interface scope |
+| --- | --- |
+| Public marketplace | Livestock browsing, listing details, collection centres and verification information |
+| Buyer and seller | Saved items, offers, messages, selling and transaction views |
+| Field agent | Verification assignments and field-work screens |
+| Collection centre | Intake, animals and handover views |
+| Transport | Assignment and route views |
+| Administration | Listings, verification, zones, transactions, payments and analytics views |
 
-`install:ci` runs `npm ci` once against the shared lockfile, disables parent-workspace discovery, and includes required dev/optional dependencies despite production/omit settings. Sharp defaults to prebuilt binaries unless explicitly configured otherwise. Do not overlap installers.
+These are interface areas, not claims that every workflow has a production backend. For example, the listing-card favourite action currently displays a toast rather than persisting a saved item.
 
-- **Portable:** Preserve host HOME, npm cache, registry, proxy, temporary paths, retry/concurrency settings, and lifecycle-script policy. Use `--prefer-offline --no-audit --no-fund`.
-- **Managed Linux:** Use the existing project-local HOME/cache/tmp setup and Linux install lock, tarball preflight, and timeout. Restore the image-seeded npm cache only when its lockfile hash matches; retain network fallback. Builds keep their existing timeout. These helpers are not invoked by the portable profile.
+## Engineering structure
 
-`scripts/sites-env.mjs` preserves the caller's HOME, npm cache, proxy, XDG, and temporary-directory configuration while defaulting Wrangler and Miniflare state to the checkout. If npm reports an unwritable cache, select a writable path with `npm_config_cache` for that install. The `dev` and `start` scripts also keep Wrangler logs inside the checkout. Generated `.sites-runtime/` and `.wrangler/` directories are disposable and ignored by Git.
+| Path | Responsibility |
+| --- | --- |
+| `app/mariketi-app.tsx` | Main client application, navigation and page components |
+| `app/mariketi-refinements.tsx` | Additional workspace and navigation components |
+| `app/[...slug]/page.tsx` | Catch-all route entry |
+| `domain/types.ts` | Typed marketplace entities and roles |
+| `data/seed.ts` | Demonstration records |
+| `services/mock.ts` | Asynchronous mock service boundary |
+| `components/ui/` | Reusable interface primitives |
+| `db/schema.ts` | Empty database schema placeholder |
 
-On portable, `npm run dev` uses `vinext dev` with HMR, starting at port 5173. Vinext records the running server in ignored `.vinext/` state, rejects an ordinary duplicate launch, and recovers stale state after a stopped process; exactly simultaneous starts can race. Pass `--port <port>` or `--hostname <host>` after `npm run dev --` when needed; keep portable previews on loopback.
+**Stack:** TypeScript with strict checking, React, Next.js, Tailwind CSS, shadcn-related UI primitives, Motion and D3. Cloudflare/Vinext tooling is also retained from the original Sites setup.
 
-For browser QA on managed Linux, use `sites-preview start`. The project's dev script runs Vite and accepts the supervisor's `--host 0.0.0.0 --port 4173 --strictPort` arguments. The internal browser uses `http://terminal.local:4173/`; it is not a user-facing URL. The supervisor owns the preview lifecycle. The ignored local profile survives the supervisor's cleared process environment.
+The service boundary makes the intended backend integration points visible. Mock delays simulate asynchronous interactions; they do not represent network calls.
 
-The portable profile simulates ChatGPT sign-in only for loopback development requests. Visit `/signin-with-chatgpt?return_to=/` to sign in as `local_seedy` (`seedy@sites.test`, display name `Seedy`) and `/signout-with-chatgpt?return_to=/` to sign out. The development cookie preserves that identity across server restarts. Mock auth is disabled in the managed-linux profile and is not included in production builds; hosted authentication remains dispatch-owned.
+## Local setup
 
-The Worker uses `vinext/server/fetch-handler`, including Vinext's config-aware image handling. After building, `npm start` runs that Worker locally through Wrangler on `127.0.0.1`, sharing `.wrangler/state` with dev preview and local D1 migrations; it does not deploy the site or simulate sign-in. Use the URL printed by the server. Pass `npm start -- --port <port>` to select a different built-preview port.
-
-Local previews use Miniflare's placeholder `Request.cf` metadata without a network lookup. Set `CLOUDFLARE_CF_FETCH_ENABLED=true` to opt into fetching preview metadata; this setting does not change hosted request metadata.
-
-Local tool usage metrics are disabled by default. Set `WRANGLER_SEND_METRICS=true` to opt in.
-
-## Included Shape
-
-- edit site code under `app/`
-- `app/chatgpt-auth.ts` provides optional dispatch-owned ChatGPT sign-in helpers
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/index.ts` reads the D1 binding from the Cloudflare Worker environment
-- `db/schema.ts` starts intentionally empty
-- `@cloudflare/workers-types` provides Worker types; `cloudflare-env.d.ts` declares optional `DB`/`BUCKET` bindings—update these declarations if binding names change
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Use it as the durable user key; use email and name for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive `oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty `name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by `oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use the returned `userId` as the stable user key for user-owned records; do not use email as a durable identifier.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send anonymous visitors through Sign in with ChatGPT.
-- In a Server Component, start sign-in with `<a href={chatGPTSignInPath(returnTo)} target="_top">`. The auth helper module is server-only; do not import it into a Client Component.
-- Do not use `fetch`, XHR, a client-side router, or a framework link that can prefetch the sign-in route. SIWC must start as a top-level navigation.
-- Never request the AuthAPI authorization endpoint directly. The dispatch-owned `/signin-with-chatgpt` route must start the SIWC flow.
-- Use `chatGPTSignOutPath(returnTo)` for browser sign-out links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the OAuth cookies, and identity header injection. Do not implement app routes for those reserved paths. Routes that do not import and call the helper remain anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the Sites hosting platform's access policy controls for workspace-wide restrictions, or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Local D1 migrations
-
-For a D1-backed local preview, generate SQL with `npm run db:generate`. Build once through the Sites skill's build entrypoint (or `npm run build` for standalone use) to generate `dist/server/wrangler.json`, rebuilding if bindings change. From the project root, apply each pending migration in order:
+Prerequisites: Git, Node.js **22.13.0 or newer**, and the pnpm version declared in `package.json`.
 
 ```sh
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_example.sql
+git clone https://github.com/Lovest99/mariketi.git
+cd mariketi
+pnpm install --frozen-lockfile
 ```
 
-Replace the filename with the pending migration and `DB` with your D1 binding name if different. Use `.wrangler/state`, not `.wrangler/state/v3`; Wrangler adds the versioned directories. Do not replay migrations already applied locally. This updates only the preview database; publishing applies production migrations separately.
+For a consistent Next.js development/build/preview path:
 
-## Diagnostic Commands
+```sh
+pnpm exec next dev
+pnpm run build
+pnpm exec next start
+```
 
-- `npm run install:ci`: perform the one locked dependency install
-- `npm run dev`: start the Vite/Vinext development server
-- `npm run build`: build the deployable Sites artifact
-- `npm run start`: preview the built Worker locally with D1/R2 support
-- `npm run db:generate`: generate Drizzle migrations after schema changes
+Run the production preview only after a successful build. These commands are derived from the checked-in configuration; a clean-clone build was not executed as part of the documentation audit.
 
-When using the Sites plugin, follow its skill instructions for installation, builds, and publishing. These npm commands remain available for standalone use.
+### Runtime distinction
 
-The portable build runs Vinext directly without a host `timeout` command. The managed-linux build uses `scripts/build-verified.sh` and its existing `SITES_BUILD_TIMEOUT` setting.
+- `pnpm run build` invokes **Next.js**.
+- `pnpm run dev` uses the retained execution-profile wrapper and selects Vinext or Vite.
+- `pnpm run start` expects a **Cloudflare Worker** artifact under `dist/server/`; it is not the preview command for the Next.js build.
 
-## Learn More
+Use one runtime consistently. [The retained Sites starter guide](docs/sites-starter-reference.md) documents the original Cloudflare workflow and requires adaptation to the current scripts.
 
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+## Validation
+
+```sh
+pnpm exec tsc --noEmit
+pnpm run lint
+pnpm run build
+```
+
+There is currently no checked-in automated test suite or GitHub Actions workflow. The commands above are validation entry points, not a claim of passing checks.
+
+Useful manual scenarios include opening a listing directly by URL, using browser back/forward navigation, switching demo workspaces, publishing a mock listing, making an offer, and checking mobile navigation and keyboard access.
+
+## Known limitations
+
+- Mock records are held in module memory and reset when the application reloads.
+- The mock auth service returns a fixed user; OTP validation only checks string length.
+- The role switcher is for demonstration and provides no server-side authorization.
+- Verification badges, tradeability and payment screens are demonstration data, not guarantees about animals or transactions.
+- Durable offline synchronization, production payment handling and server-enforced permissions remain backend work.
+- The main client application is large and should be separated into feature modules.
+- No accessibility, performance or security certification is claimed.
+
+## Next engineering milestones
+
+1. Split marketplace, workspaces and shared navigation into focused modules.
+2. Add tests for important user journeys and CI for type checking, lint and build.
+3. Choose and document a single deployment runtime.
+4. Implement persistent services, authenticated sessions and server-side role enforcement.
+5. Integrate verification and transaction workflows against agreed backend contracts.
+
+## Related repository
+
+[mariketi-ui](https://github.com/Lovest99/mariketi-ui) contains an overlapping frontend implementation. Deployment ownership should be confirmed before consolidating or archiving either repository.
+
+## Project permissions
+
+No project license is currently included. Confirm the project owner's permission before redistributing code, branding or client material.
