@@ -237,3 +237,35 @@ p{orphans:2;widows:2}
 @media(prefers-reduced-motion:reduce){
   .category-tile img{transition:none}
 }
+
+
+/* Enterprise buyer intelligence and account control */
+.enterprise-view{padding-block:4px 30px}
+.saved-search-grid{display:grid;gap:12px}
+.saved-search-grid article{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;
+  padding:20px;border:1px solid var(--mk-rule);border-radius:var(--mk-radius);background:var(--mk-surface)
+}
+.saved-search-grid h3{margin:5px 0;font-size:20px}
+.saved-search-grid p{margin:0;color:var(--mk-subtle)}
+.saved-search-grid strong{color:var(--mk-blue);font-size:14px}
+.saved-search-grid article>div:last-child{grid-column:1/-1;display:flex;gap:8px}
+.settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.settings-grid article{display:grid;align-content:start;gap:14px;padding:22px;border:1px solid var(--mk-rule);border-radius:var(--mk-radius);background:var(--mk-surface)}
+.settings-grid article:first-child{grid-row:span 2}
+.settings-grid h3{margin:0 0 6px;font-size:19px}
+.settings-grid p{margin:0;color:var(--mk-subtle)}
+.settings-grid label:not(.setting-toggle){display:grid;gap:7px;color:var(--mk-subtle);font-size:12px;font-weight:650}
+.settings-grid select{min-height:46px;padding:0 12px;border:1px solid var(--mk-rule);border-radius:8px;background:var(--mk-surface);color:var(--mk-ink)}
+.setting-toggle{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px;border-bottom:1px solid var(--mk-rule)}
+.setting-toggle span{display:grid;gap:4px}
+.setting-toggle small{color:var(--mk-subtle)}
+.setting-toggle input{width:20px;height:20px;accent-color:var(--mk-blue)}
+
+@media(max-width:800px){
+  .saved-search-grid article{grid-template-columns:1fr;padding:16px}
+  .saved-search-grid strong{grid-row:2}
+  .saved-search-grid article>div:last-child{grid-column:1;display:grid;grid-template-columns:1fr 1fr}
+  .settings-grid{grid-template-columns:1fr}
+  .settings-grid article:first-child{grid-row:auto}
+}
