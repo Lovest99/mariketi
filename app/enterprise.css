@@ -67,7 +67,7 @@ p{orphans:2;widows:2}
 /* Workspace shell */
 .workspace{min-height:100dvh;background:var(--mk-shell)}
 .sidebar{width:248px}
-.workspace-main{min-width:0;margin-left:248px;padding-inline:clamp(22px,3vw,48px);padding-bottom:72px}
+.workspace-main{min-width:0;margin-left:0;padding-inline:clamp(22px,3vw,48px);padding-bottom:72px}
 .workspace-header{
   min-height:92px;height:auto;margin-inline:calc(clamp(22px,3vw,48px) * -1);
   padding:20px clamp(22px,3vw,48px);border-bottom:1px solid var(--mk-rule)
@@ -124,7 +124,7 @@ p{orphans:2;widows:2}
   .sidebar .logo{width:64px}
   .sidebar>span,.sidebar>button span{display:none}
   .sidebar>button:not(:first-child){justify-content:center}
-  .workspace-main{margin-left:88px;padding-inline:24px}
+  .workspace-main{margin-left:0;padding-inline:24px}
   .workspace-header{margin-inline:-24px;padding-inline:24px}
   .admin-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
